@@ -1,0 +1,30 @@
+version: '3.1'
+
+services:
+  mydyndns:
+    container_name: mydyndns
+    image: davd/docker-ddns:latest
+    environment:
+      RECORD_TTL: 360
+      SHARED_SECRET: ${SHARED_SECRET}
+      ZONE: ${ZONE}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=web"
+      - "traefik.http.routers.mydyndns.entrypoints=websecure"
+      - "traefik.http.routers.mydyndns.rule=Host(`dyndns-updater.thereforsunrise.com`)"
+      - "traefik.http.routers.mydyndns.tls=true"
+      - "traefik.http.services.mydyndns.loadbalancer.server.port=8080"
+      - "traefik.udp.routers.mydyndns.entrypoints=dnsudp"
+      - "traefik.udp.services.mydyndns.loadbalancer.server.port=53"
+      - "traefik.tcp.routers.mydyndns.entrypoints=dnstcp"
+      - "traefik.tcp.routers.mydyndns.rule=HostSNI(`*`)"
+      - "traefik.tcp.services.mydyndns.loadbalancer.server.port=53"
+    restart: always
+    networks:
+      - web
+
+networks:
+  web:
+    external:
+      name: myproxy_webgateway
